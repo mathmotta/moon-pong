@@ -13,6 +13,8 @@ VHEIGHT = 243
 PADDLE_SPEED = 200
 
 function love.load()
+    gameVersion = 'desktop' -- 'mobile' or 'desktop'
+
     love.graphics.setDefaultFilter('nearest', 'nearest')
     love.window.setTitle('Moon Pong')
 
@@ -30,7 +32,7 @@ function love.load()
     }
 
     push:setupScreen(VWIDTH, VHEIGHT, WWIDTH, WHEIGHT, {
-        fullscreen = false,
+        fullscreen = true,
         resizable = true,
         vsync = true
     })
@@ -40,8 +42,13 @@ function love.load()
 
     servingPlayer = 1
 
-    p1 = Paddle(10, 30, 5, 20)
-    p2 = Paddle(VWIDTH - 10, VHEIGHT - 30, 5, 20)
+    if gameVersion == 'desktop' then
+        p1 = Paddle(10, 30, 5, 20)  
+        p2 = Paddle(VWIDTH - 10, VHEIGHT - 30, 5, 20)
+    elseif gameVersion == 'mobile' then
+        p1 = Paddle(50, 30, 5, 20)  
+        p2 = Paddle(VWIDTH - 50, VHEIGHT - 30, 5, 20)
+    end
     ball = Ball(VWIDTH / 2 - 2, VHEIGHT / 2 - 2, 4, 4)
 
     gameState = 'start'
@@ -152,23 +159,37 @@ function serveBall()
 end
 
 function detectPlayerMovement()
-    if love.keyboard.isDown('w') then
-        p1.dy = -PADDLE_SPEED
-    elseif love.keyboard.isDown('s') then
-        p1.dy = PADDLE_SPEED
-    else
-        p1.dy = 0
-    end
-
-    if gameMode == 'ai' then
-        p2.y = ball.y
-    else
-        if love.keyboard.isDown('up') then
-            p2.dy = -PADDLE_SPEED
-        elseif love.keyboard.isDown('down') then
-            p2.dy = PADDLE_SPEED
+    if gameVersion == 'desktop' then
+        if love.keyboard.isDown('w') then
+            p1.dy = -PADDLE_SPEED
+        elseif love.keyboard.isDown('s') then
+            p1.dy = PADDLE_SPEED
         else
-            p2.dy = 0
+            p1.dy = 0
+        end
+
+        if gameMode == 'ai' then
+            p2.y = ball.y
+        else
+            if love.keyboard.isDown('up') then
+                p2.dy = -PADDLE_SPEED
+            elseif love.keyboard.isDown('down') then
+                p2.dy = PADDLE_SPEED
+            else
+                p2.dy = 0
+            end
+        end
+    elseif gameVersion == 'mobile' then
+        local touches = love.touch.getTouches()
+ 
+        for i, id in ipairs(touches) do
+            local wx, wy = love.touch.getPosition(id)
+            local vx, vy = push:toGame(wx, wy)
+            if vx ~= nil and vx < VWIDTH / 2 then
+                p1.y = vy
+            else 
+                p2.y = vy
+            end
         end
     end
 end
@@ -202,6 +223,27 @@ function love.keypressed(key)
             else
                 servingPlayer = 1
             end
+        end
+    end
+end
+
+function love.touchpressed( id, x, y, dx, dy, pressure )
+    if gameState == 'start' then
+        gameState = 'serve'
+    elseif gameState == 'serve' then
+        gameState = 'play'
+    elseif gameState == 'done' then
+        gameState = 'serve'
+
+        ball:reset()
+
+        p1Score = 0
+        p2Score = 0
+
+        if winningPlayer == 1 then
+            servingPlayer = 2
+        else
+            servingPlayer = 1
         end
     end
 end
