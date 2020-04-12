@@ -14,7 +14,7 @@ PADDLE_SPEED = 200
 
 function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
-    love.window.setTitle('Pong')
+    love.window.setTitle('Moon Pong')
 
     math.randomseed(os.time())
 
@@ -45,6 +45,7 @@ function love.load()
     ball = Ball(VWIDTH / 2 - 2, VHEIGHT / 2 - 2, 4, 4)
 
     gameState = 'start'
+    gameMode = 'none'
 end
 
 function love.update(dt)
@@ -159,22 +160,34 @@ function detectPlayerMovement()
         p1.dy = 0
     end
 
-    if love.keyboard.isDown('up') then
-        p2.dy = -PADDLE_SPEED
-    elseif love.keyboard.isDown('down') then
-        p2.dy = PADDLE_SPEED
+    if gameMode == 'ai' then
+        p2.y = ball.y
     else
-        p2.dy = 0
+        if love.keyboard.isDown('up') then
+            p2.dy = -PADDLE_SPEED
+        elseif love.keyboard.isDown('down') then
+            p2.dy = PADDLE_SPEED
+        else
+            p2.dy = 0
+        end
     end
 end
 
 function love.keypressed(key)
     if key == 'escape' then
         love.event.quit()
-    elseif key == 'enter' or key == 'return' then
+    elseif key == '1' then
         if gameState == 'start' then
             gameState = 'serve'
-        elseif gameState == 'serve' then
+            gameMode = 'multiplayer'
+        end
+    elseif key == '2' then
+        if gameState == 'start' then
+            gameState = 'serve'
+            gameMode = 'ai'
+        end
+    elseif key == 'enter' or key == 'return' then
+        if gameState == 'serve' then
             gameState = 'play'
         elseif gameState == 'done' then
             gameState = 'serve'
@@ -220,8 +233,9 @@ end
 function displayMessages()
     if gameState == 'start' then
         love.graphics.setFont(smallFont)
-        love.graphics.printf('Welcome to Pong!', 0, 10, VWIDTH, 'center')
-        love.graphics.printf('Press Enter to begin!', 0, 20, VWIDTH, 'center')
+        love.graphics.printf('Welcome to Moong Pong!', 0, 10, VWIDTH, 'center')
+        love.graphics.printf('Press 1 for multiplayer', 0, 20, VWIDTH, 'center')
+        love.graphics.printf('Press 2 for AI', 0, 30, VWIDTH, 'center')
     elseif gameState == 'serve' then
         love.graphics.setFont(smallFont)
         love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s serve!", 
