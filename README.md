@@ -7,3 +7,7 @@ The goal of this project is to experiment and learn about [Love 2D](https://love
 # The Game
 
 ![Demo](./demo.gif)
+
+# WARNING
+
+AI is invincible!
