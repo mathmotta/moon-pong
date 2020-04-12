@@ -32,7 +32,7 @@ function love.load()
     }
 
     push:setupScreen(VWIDTH, VHEIGHT, WWIDTH, WHEIGHT, {
-        fullscreen = true,
+        fullscreen = false,
         resizable = true,
         vsync = true
     })
@@ -158,6 +158,12 @@ function serveBall()
     end
 end
 
+function tablelength(T)
+    local count = 0
+    for _ in pairs(T) do count = count + 1 end
+    return count
+  end
+
 function detectPlayerMovement()
     if gameVersion == 'desktop' then
         if love.keyboard.isDown('w') then
@@ -181,6 +187,14 @@ function detectPlayerMovement()
         end
     elseif gameVersion == 'mobile' then
         local touches = love.touch.getTouches()
+
+        if tablelength(touches) > 1 then
+            gameMode = 'multiplayer'
+        end
+        
+        if gameMode == 'ai' then
+            p2.y = ball.y
+        end
  
         for i, id in ipairs(touches) do
             local wx, wy = love.touch.getPosition(id)
@@ -230,6 +244,7 @@ end
 function love.touchpressed( id, x, y, dx, dy, pressure )
     if gameState == 'start' then
         gameState = 'serve'
+        gameMode = 'ai'
     elseif gameState == 'serve' then
         gameState = 'play'
     elseif gameState == 'done' then
@@ -275,9 +290,15 @@ end
 function displayMessages()
     if gameState == 'start' then
         love.graphics.setFont(smallFont)
-        love.graphics.printf('Welcome to Moong Pong!', 0, 10, VWIDTH, 'center')
-        love.graphics.printf('Press 1 for multiplayer', 0, 20, VWIDTH, 'center')
-        love.graphics.printf('Press 2 for AI', 0, 30, VWIDTH, 'center')
+        love.graphics.printf('Welcome to Moon Pong!', 0, 10, VWIDTH, 'center')
+        if gameVersion == 'desktop' then
+            love.graphics.printf('Press 1 for multiplayer', 0, 20, VWIDTH, 'center')
+            love.graphics.printf('Press 2 for AI', 0, 30, VWIDTH, 'center')
+            love.graphics.printf('Commands: P1: w and s; P2 up and down', 0, 40, VWIDTH, 'center')
+        elseif gameVersion == 'mobile' then
+            love.graphics.printf('Touch to begin.', 0, 20, VWIDTH, 'center')
+            love.graphics.printf('If multitouch is detected, multiplayer begins!', 0, 30, VWIDTH, 'center')
+        end
     elseif gameState == 'serve' then
         love.graphics.setFont(smallFont)
         love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s serve!", 
